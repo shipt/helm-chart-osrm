@@ -4,6 +4,7 @@ metadata:
   name: {{ include "osrm.fullname" . }}-headless
   labels:
 {{ include "osrm.labels" . | indent 4 }}
+  namespace: osrm
 spec:
   type: {{ .Values.service.type }}
   clusterIP: None

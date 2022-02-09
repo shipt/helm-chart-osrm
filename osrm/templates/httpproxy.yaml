@@ -1,0 +1,25 @@
+{{ if .Values.httpproxy.enabled }}
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  labels:
+{{ include "osrm.labels" . | indent 4 }}
+  name: osrm
+  namespace: osrm
+spec:
+  routes:
+    - conditions:
+        - prefix: /
+      retryPolicy:
+        count: 5
+        perTryTimeout: 15s
+        retryOn:
+          - connect-failure
+      services:
+        - name: {{ include "osrm.fullname" . }}
+          port: {{ .Values.service.port }}
+  virtualhost:
+    fqdn: osrm.{{ .Values.cluster.domain }}
+    tls:
+      secretName: {{ .Values.cluster.tlsCertSecret }}
+{{ end }}

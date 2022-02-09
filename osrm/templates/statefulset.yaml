@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "osrm.fullname" . }}
+  namespace: osrm
   labels:
 {{ include "osrm.labels" . | indent 4 }}
 spec:
@@ -41,7 +42,7 @@ spec:
           command:
             - osrm-routed
             - --algorithm
-            - mld
+            - {{ .Values.routed.algorithm }}
             {{- if and .Values.map.enabled ( eq "http" .Values.map.source ) }}
             - /data/maps/{{ .Values.map.http.version | default "unversioned" }}/map.osrm
             {{- end }}
