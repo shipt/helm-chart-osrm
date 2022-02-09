@@ -8,6 +8,10 @@ fullnameOverride: ""
 # How many replicas of the statefulset to deploy.
 replicaCount: 1
 
+cluster:
+  domain: gcp.staging.shipttech.com
+  tlsCertSecret: osrm-gcp-staging-shipttech-com-tls
+
 image:
   repository: osrm/osrm-backend
   tag: v5.22.0
@@ -53,7 +57,7 @@ configTemplatedFiles: {}
 # Kubernetes Service object configuration.
 service:
   type: ClusterIP
-  port: 80
+  port: 8080
 
 # Kubernetes Ingress object configuration.
 ingress:
@@ -70,6 +74,10 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+# ProjectContour HTTPProxy configuration
+httpproxy:
+  enabled: true
+
 resources: {}
   # requests:
   #   cpu: 200m
@@ -78,11 +86,17 @@ resources: {}
   #   cpu: 1000m
   #   memory: 512Mi
 
-nodeSelector: {}
+nodeSelector:
+  node_pool: osrm-01
 
-tolerations: []
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "osrm"
+    effect: "NoSchedule"
 
-affinity: {}
+affinity: {
+}
 
 livenessProbe: null
 #  httpGet:
@@ -98,7 +112,7 @@ readinessProbe: null
 # Enable & configure this if you don't want to download the same maps each
 # time you deploy.
 persistence:
-  enabled: false
+  enabled: true
 
   # If defined, storageClassName: <storageClass>.
   # If set to "-", storageClassName: "", which disables dynamic provisioning.
@@ -110,7 +124,7 @@ persistence:
 
   accessModes:
     - ReadWriteOnce
-  size: 1Gi
+  size: 300Gi
 
 # map configuration enables out-of-the-box map downloading from various sources and required preparations
 # (extraction, etc.).
@@ -150,7 +164,10 @@ map:
     # Some sources/mirrors you may use:
     # - http://download.geofabrik.de
     # - https://download.openstreetmap.fr/extracts/
-    uri: https://download.openstreetmap.fr/extracts/europe/monaco.osm.pbf
+    uri: https://download.geofabrik.de/north-america-latest.osm.pbf
+    #uri: https://download.openstreetmap.fr/extracts/europe/monaco.osm.pbf
+
+    force: true
 
     # Set to "true" when the .md5 file is available for checksum.
     checkMD5: false
@@ -248,3 +265,8 @@ map:
       - name: google-application-credentials
         secret:
           secretName: {{ .Values.map.gcs.googleApplicationCredentials.secretName }}
+
+
+routed:
+  # CH or MLD
+  algorithm: CH

@@ -8,6 +8,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
+  namespace: osrm
   labels:
   {{- include "osrm.labels" . | nindent 4 }}
   {{- with .Values.ingress.extraLabels }}

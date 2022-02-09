@@ -18,11 +18,17 @@ checkMD5="{{ if .Values.map.http.checkMD5 }}1{{ end }}"
 
 mkdir -p "/data/maps/${version}"
 cd "/data/maps/${version}"
+if [ -f "${file}" ];
+ then rm -f "${file}"
+fi
 
 if [ ! -r downloaded.lock ]; then
-  wget "${uri}"
+  wget -nc "${uri}"
 
   if [ -n "${checkMD5}" ]; then
+    if [ -f "${file}.md5" ]; then
+      rm -f "${file}.md5"
+    fi
     wget "${uri}.md5"
     md5sum -c "${file}.md5"
     rm "${file}.md5"
