@@ -9,8 +9,8 @@ fullnameOverride: ""
 replicaCount: 1
 
 cluster:
-  domain: gcp.staging.shipttech.com
-  tlsCertSecret: osrm-gcp-staging-shipttech-com-tls
+  domain: ""
+  tlsCertSecret: ""
 
 image:
   repository: osrm/osrm-backend
