@@ -100,7 +100,7 @@ affinity: {
 
 
 # GCP service account email for use with workload identity
-serviceAccountEmail: "shipt-plt-stg-osrm@shipt-root.iam.gserviceaccount.com"
+serviceAccountEmail: ""
 
 livenessProbe: null
 #  httpGet:
@@ -244,7 +244,7 @@ map:
     # Google Cloud Storage URI to download map archive from.
     #
     # Example: "gs://example-osrm-maps/20200226-1/map.tar.gz"
-    uri: "gs://shipt-plt-stg-osrm-map-data/north-america.tar.gz"
+    uri: ""
 
     # To download from private gcs bucket you need google application credentials.
     # This section allows configuring it via an externally created secret.
