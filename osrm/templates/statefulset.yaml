@@ -6,7 +6,7 @@ metadata:
   labels:
 {{ include "osrm.labels" . | indent 4 }}
 spec:
-  serviceName: {{ include "osrm.fullname" . }}-headless
+  serviceName: {{ include "osrm.fullname" . }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
@@ -22,6 +22,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+      serviceAccountName: osrm
       initContainers:
       {{- with .Values.initContainersTpl }}
       {{- ( tpl . $ ) | nindent 8 }}
@@ -93,7 +94,7 @@ spec:
       {{- with .Values.extraVolumesTpl }}
         {{- ( tpl . $ ) | nindent 8 }}
       {{- end }}
-      {{- if and .Values.map.enabled ( eq "gcs" .Values.map.source ) }}
+      {{- if and .Values.map.enabled ( eq "foo" .Values.map.source ) }}
         {{- ( tpl .Values.map.gcs.extraVolumesTpl $ ) | nindent 8 }}
       {{- end }}
   {{- if .Values.persistence.enabled }}

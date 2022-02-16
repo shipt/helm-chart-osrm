@@ -9,8 +9,8 @@ fullnameOverride: ""
 replicaCount: 1
 
 cluster:
-  domain: gcp.staging.shipttech.com
-  tlsCertSecret: osrm-gcp-staging-shipttech-com-tls
+  domain: ""
+  tlsCertSecret: ""
 
 image:
   repository: osrm/osrm-backend
@@ -98,15 +98,20 @@ tolerations:
 affinity: {
 }
 
+
+# GCP service account email for use with workload identity
+serviceAccountEmail: ""
+
 livenessProbe: null
 #  httpGet:
-#    path: /route/v1/driving/13.388860,52.517037;13.385983,52.496891
+#    path: /table/v1/car/13.388860,52.517037;13.385983,52.496891
 #    port: http
 
-readinessProbe: null
-#  httpGet:
-#    path: /route/v1/driving/13.388860,52.517037;13.385983,52.496891
-#    port: http
+readinessProbe:
+ httpGet:
+   path: /table/v1/car/13.388860,52.517037;13.385983,52.496891
+   port: http
+ initialDelaySeconds: 300
 
 # Persistence allows you to store downloaded maps in the persistent store.
 # Enable & configure this if you don't want to download the same maps each
@@ -140,7 +145,7 @@ map:
   # Supported providers:
   # - http
   # - gcs
-  source: http
+  source: gcs
 
   # http section is used when chart is configured to download maps from an HTTP endpoint.
   #
@@ -177,6 +182,14 @@ map:
     configTemplatedFiles:
       download.sh: "files/http-download.sh.tpl"
       extract.sh: "files/http-extract.sh.tpl"
+      gcs-upload-prepared.sh: "files/gcs-upload-prepared.sh.tpl"
+
+    # To upload to a private gcs bucket you need google application credentials.
+    # This section allows configuring it via an externally created secret.
+    googleApplicationCredentials:
+      enabled: true
+      secretName: osrm-google-application-credentials
+      secretKey: credentials.json
 
     # http mode init containers.
     # See tol-level 'initContainersTpl' for documentation.
@@ -196,6 +209,16 @@ map:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
           - /scripts/extract.sh
+        volumeMounts:
+          - name: config-files
+            mountPath: /scripts
+          - name: maps
+            mountPath: /data/maps
+      - name: map-uploader
+        image: gcr.io/google.com/cloudsdktool/cloud-sdk:282.0.0-alpine
+        imagePullPolicy: IfNotPresent
+        command:
+          - /scripts/gcs-upload-prepared.sh
         volumeMounts:
           - name: config-files
             mountPath: /scripts
@@ -226,7 +249,7 @@ map:
     # To download from private gcs bucket you need google application credentials.
     # This section allows configuring it via an externally created secret.
     googleApplicationCredentials:
-      enabled: true
+      enabled: false
       secretName: osrm-google-application-credentials
       secretKey: credentials.json
 
