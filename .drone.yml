@@ -12,8 +12,10 @@ workspace:
 steps:
   - name: package
     image: alpine/helm:3.1.1
-    command: helm package ./osrm -d packaged-chart
+    commands:
+      - helm package ./osrm -d packaged-chart
 
   - name: upload
     image: amazon/aws-cli:2.4.18
-    command: aws s3 cp packaged-chart/osrm-${DRONE_TAG}.tgz s3://shipt-k8s-helm-charts/osrm-${DRONE_TAG}.tgz
+    commands:
+      - aws s3 cp packaged-chart/osrm-${DRONE_TAG}.tgz s3://shipt-k8s-helm-charts/osrm-${DRONE_TAG}.tgz
