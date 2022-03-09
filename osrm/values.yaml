@@ -28,7 +28,10 @@ initContainers: []
 initContainersTpl: ""
 
 # Extra arguments to pass to the osrm binary.
-extraArgs: []
+extraArgs: [
+  "--max-table-size",
+  "5000"
+]
 
 # Extra volumes to add to the pod.
 # This field is plain yaml that is inserted as-is.
