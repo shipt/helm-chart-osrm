@@ -80,6 +80,8 @@ ingress:
 # ProjectContour HTTPProxy configuration
 httpproxy:
   enabled: true
+  max_connections: "5000"
+  max_requests: "5000"
 
 resources: {}
   # requests:

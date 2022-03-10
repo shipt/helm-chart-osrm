@@ -5,6 +5,9 @@ metadata:
   namespace: osrm
   labels:
 {{ include "osrm.labels" . | indent 4 }}
+  annotations:
+    projectcontour.io/max-connections: {{ .Values.httpproxy.max_connections  }}
+    projectcontour.io/max-requests: {{ .Values.httpproxy.max_requests }}
 spec:
   type: {{ .Values.service.type }}
   ports:
