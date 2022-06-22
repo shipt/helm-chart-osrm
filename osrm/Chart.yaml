@@ -2,7 +2,7 @@ apiVersion: v1
 name: osrm
 description: OSRM - Open Source Routing Machine
 version: 0.5.2
-appVersion: "5.22.0"
+appVersion: "5.22.1"
 keywords:
   - osrm
 sources:
