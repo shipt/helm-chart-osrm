@@ -213,7 +213,7 @@ map:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
-          - /scripts/extract.sh
+          - /scripts/extract.sh {$weight}
         volumeMounts:
           - name: config-files
             mountPath: /scripts
