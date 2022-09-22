@@ -1,5 +1,8 @@
 # Default values for osrm.
 
+# Weighted rule based on which OSRM computes
+weightedRule: "" 
+
 # Chart name override. Defaults to chart name, i.e. "osrm".
 nameOverride: ""
 # App name override. Defaults to name built upon release name and chart name.
@@ -213,7 +216,7 @@ map:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
-          - /scripts/extract.sh
+          - /scripts/extract.sh {{ .Values.weightedRule }}
         volumeMounts:
           - name: config-files
             mountPath: /scripts

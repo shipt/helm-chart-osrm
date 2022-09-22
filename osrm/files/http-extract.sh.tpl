@@ -20,7 +20,7 @@ file_osrm="map.osrm"
 
 cd "/data/maps/${version}"
 
-sed -i "1,/weight_name.*/ s/weight_name.*/weight_name = 'duration',/" /opt/car.lua
+sed -i "1,/weight_name.*/ s/weight_name.*/weight_name = '\$1',/" /opt/car.lua
 echo "set weight_name to distance in /opt/car.lua"
 cat /opt/car.lua | grep weight_name
 
