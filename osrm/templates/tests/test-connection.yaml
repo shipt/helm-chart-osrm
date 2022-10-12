@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: "{{ include "osrm.fullname" . }}-test-connection"
-  namespace: osrm
+  namespace: {{ include "osrm.namespace" . }}
   labels:
 {{ include "osrm.labels" . | indent 4 }}
   annotations:
