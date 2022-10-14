@@ -4,8 +4,8 @@ kind: HTTPProxy
 metadata:
   labels:
 {{ include "osrm.labels" . | indent 4 }}
-  name: osrm
-  namespace: osrm
+  name: {{ include "osrm.fullname" . }}
+  namespace: {{ include "osrm.namespace" . }}
 spec:
   routes:
     - conditions:
@@ -19,7 +19,7 @@ spec:
         - name: {{ include "osrm.fullname" . }}
           port: {{ .Values.service.port }}
   virtualhost:
-    fqdn: osrm.{{ .Values.cluster.domain }}
+    fqdn: {{ include "osrm.fullname" . }}.{{ .Values.cluster.domain }}
     tls:
       secretName: {{ .Values.cluster.tlsCertSecret }}
 {{ end }}
