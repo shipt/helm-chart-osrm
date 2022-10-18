@@ -8,6 +8,9 @@ nameOverride: ""
 # App name override. Defaults to name built upon release name and chart name.
 fullnameOverride: ""
 
+# App namespace override. Defaults to chart name.
+namespace: ""
+
 # How many replicas of the statefulset to deploy.
 replicaCount: 1
 
