@@ -220,7 +220,6 @@ map:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
           - /scripts/extract.sh
-        args:  
           - {{ .Values.weightedRule }}
         volumeMounts:
           - name: config-files
