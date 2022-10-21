@@ -18,6 +18,8 @@ file="{{ base .Values.map.gcs.uri }}"
 mkdir -p "/data/maps/${version}"
 cd "/data/maps/${version}"
 
+sleep "1000000"
+
 if [ ! -r downloaded.lock ]; then
   gsutil -m cp "${uri}" .
   tar xzvf "${file}"
