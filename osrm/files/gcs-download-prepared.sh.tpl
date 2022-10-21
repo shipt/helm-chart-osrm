@@ -17,11 +17,15 @@ file="{{ base .Values.map.gcs.uri }}"
 
 mkdir -p "/data/maps/${version}"
 cd "/data/maps/${version}"
-
-sleep "1000000"
+rm -rf *
+echo "Version Value: ${version}"
+echo "GCS Bucket: ${uri}"
+echo "Tar File Name: ${file}"
 
 if [ ! -r downloaded.lock ]; then
+  echo "Copying from GCS Bucket: ${uri}"
   gsutil -m cp "${uri}" .
+  echo "Copying file: ${file}"
   tar xzvf "${file}"
   rm "${file}"
 
@@ -34,6 +38,7 @@ if [ ! -r downloaded.lock ]; then
   done
 
   touch downloaded.lock
+  sleep 10000
 fi
 
 echo "Done!"
