@@ -277,8 +277,10 @@ map:
         image: gcr.io/google.com/cloudsdktool/cloud-sdk:282.0.0-alpine
         imagePullPolicy: IfNotPresent
         command:
-          - /scripts/download.sh
-        {{- if .Values.map.gcs.googleApplicationCredentials.enabled }}
+    #      - /scripts/download.sh
+    #    {{- if .Values.map.gcs.googleApplicationCredentials.enabled }}
+          - sleep
+          - "1000000"
         env:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: /var/run/secrets/osrm/google-application-credentials/{{ .Values.map.gcs.googleApplicationCredentials.secretKey }}
