@@ -10,6 +10,9 @@ ensure_dependency() {
 
 ensure_dependency gsutil
 ensure_dependency tar
+  
+gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS                                                                                                                                                                   │
+unset GOOGLE_APPLICATION_CREDENTIALS
 
 version="{{ .Values.map.gcs.version | default "unversioned" }}"
 uri="{{ .Values.map.gcs.uri }}"
@@ -38,7 +41,6 @@ if [ ! -r downloaded.lock ]; then
   done
 
   touch downloaded.lock
-  sleep 10000
 fi
 
 echo "Done!"
