@@ -94,9 +94,7 @@ spec:
       {{- with .Values.extraVolumesTpl }}
         {{- ( tpl . $ ) | nindent 8 }}
       {{- end }}
-      {{- if and .Values.map.enabled ( eq "foo" .Values.map.source ) }}
         {{- ( tpl .Values.map.gcs.extraVolumesTpl $ ) | nindent 8 }}
-      {{- end }}
   {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
