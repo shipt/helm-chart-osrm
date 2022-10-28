@@ -261,7 +261,7 @@ map:
     # To download from private gcs bucket you need google application credentials.
     # This section allows configuring it via an externally created secret.
     googleApplicationCredentials:
-      enabled: false
+      enabled: true
       secretName: osrm-google-application-credentials
       secretKey: credentials.json
 
