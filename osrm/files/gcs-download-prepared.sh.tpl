@@ -41,6 +41,7 @@ if [ ! -r downloaded.lock ]; then
   done
 
   touch downloaded.lock
+  sleep 10000
 fi
 
 echo "Done!"
