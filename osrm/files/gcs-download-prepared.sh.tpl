@@ -14,7 +14,7 @@ ensure_dependency tar
 gcloud auth list
 echo "account list"
 echo $GOOGLE_APPLICATION_CREDENTIALS
-gcloud auth activate-service-account  shipt-plt-stg-osrm@shipt-root.iam.gserviceaccount.com --key-file=$GOOGLE_APPLICATION_CREDENTIALS                                                                                                                                                                │
+gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS                                                                                                                                              
 unset GOOGLE_APPLICATION_CREDENTIALS
 
 version="{{ .Values.map.gcs.version | default "unversioned" }}"
