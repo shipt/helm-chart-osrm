@@ -42,7 +42,6 @@ if [ ! -r downloaded.lock ]; then
     echo "Rename $f -> map.osrm${f#*.osrm*}"
     mv "$f" "map.osrm${f#*.osrm*}"
   done
-
   touch downloaded.lock
 fi
 
