@@ -1,21 +1,24 @@
 kind: pipeline
-name: upload
-
+name: test-workload
 trigger:
   event:
+    - push
     - tag
-
-workspace:
-  base: /src
-  path: chart/${DRONE_REPO_NAME}
+  branch:
+    include:
+      - main
 
 steps:
-  - name: package
-    image: alpine/helm:3.1.1
-    commands:
-      - helm package ./osrm -d packaged-chart
-
-  - name: upload
-    image: amazon/aws-cli:2.4.18
-    commands:
-      - aws s3 cp packaged-chart/osrm-${DRONE_TAG}.tgz s3://shipt-k8s-helm-charts/osrm-${DRONE_TAG}.tgz
+  - name: publish-helm-chart
+    image: pkg.harness.io/p7nidaektwegp3qiqixe1a/devops/chart-publisher:latest
+    when:
+      event:
+        include:
+          - tag
+    settings:
+      harness_user:
+        from_secret: HARNESS_DRONE_USER
+      harness_password:
+        from_secret: HARNESS_DRONE_PASS
+      harness_url: pkg.harness.io/p7nidaektwegp3qiqixe1a
+      chart_path: osrm
