@@ -227,7 +227,7 @@ map:
           - name: maps
             mountPath: /data/maps
       - name: map-uploader
-        image: gcr.io/google.com/cloudsdktool/cloud-sdk:282.0.0-alpine
+        image: gcr.io/google.com/cloudsdktool/cloud-sdk:582.0.0-alpine
         imagePullPolicy: IfNotPresent
         command:
           - /scripts/gcs-upload-prepared.sh
@@ -274,7 +274,7 @@ map:
     # See tol-level 'initContainersTpl' for documentation.
     initContainersTpl: |-
       - name: map-downloader
-        image: gcr.io/google.com/cloudsdktool/cloud-sdk:282.0.0-alpine
+        image: gcr.io/google.com/cloudsdktool/cloud-sdk:582.0.0-alpine
         imagePullPolicy: IfNotPresent
         command:
           - /scripts/download.sh
