@@ -66,3 +66,4 @@ map:
     version: "20200226-1"
     uri: "gs://my-osrm-maps/20200226-1/map.tar.gz"
 ```
+
