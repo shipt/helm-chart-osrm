@@ -1,5 +1,20 @@
 # Change log
 
+## [0.7.0] - 2026-09-09
+
+- Add optional Datadog alerting via the Datadog Operator's `DatadogMonitor` CRD.
+  Gated behind `datadogMonitors.enabled` (disabled by default). Supports arbitrary
+  user-defined monitors with `tpl`-rendered queries/messages, shared tags, and
+  notification handles.   Ships six default monitors:
+  - Envoy upstream 503s (symptom).
+  - All replicas down / no healthy upstream.
+  - Image pull failure (ImagePullBackOff) - catches the pinned image-not-found
+    failure mode after node recycles.
+  - Init-container image pull failure, scoped to map-downloader/map-extractor/
+    map-uploader (the containers pinning external cloud-sdk/osrm-backend images).
+  - Crash looping pods (CrashLoopBackOff).
+  - Map PVC (maps-*) near full (300Gi volumes).
+
 ## [0.4.1] - 2020-09-08
 
 - Set Ingress apiVersion to `networking.k8s.io/v1beta1` if supported.
