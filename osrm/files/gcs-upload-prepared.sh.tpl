@@ -8,7 +8,7 @@ ensure_dependency() {
   fi
 }
 
-ensure_dependency gsutil
+ensure_dependency gcloud
 ensure_dependency tar
 
 version="{{ .Values.map.gcs.version | default "unversioned" }}"
@@ -27,7 +27,7 @@ if [ -d "${version}" ]; then
   echo "compressed ${file}"
   ls -al "${file}"
   echo "uploading to ${uri}"
-  gsutil -m cp "${file}" "${uri}"
+  gcloud storage cp "${file}" "${uri}"
   if [ $? == 0 ]; then
     echo "complete"
   else

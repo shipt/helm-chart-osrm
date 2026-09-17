@@ -8,7 +8,7 @@ ensure_dependency() {
   fi
 }
 
-ensure_dependency gsutil
+ensure_dependency gcloud
 ensure_dependency tar
 
 gcloud auth list
@@ -30,7 +30,7 @@ echo "Tar File Name: ${file}"
 
 if [ ! -r downloaded.lock ]; then
   echo "Copying from GCS Bucket: ${uri}"
-  gsutil -m cp "${uri}" .
+  gcloud storage cp "${uri}" .
   echo "Copying file: ${file}"
   tar xzvf "${file}"
   rm "${file}"
