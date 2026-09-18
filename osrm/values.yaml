@@ -305,3 +305,150 @@ map:
 routed:
   # CH or MLD
   algorithm: CH
+
+# Datadog alerting via the Datadog Operator's DatadogMonitor CRD
+# (apiVersion: datadoghq.com/v1alpha1, kind: DatadogMonitor).
+#
+# Requires the Datadog Operator to be installed in the cluster so the
+# DatadogMonitor CRD exists. Each entry in 'monitors' becomes one monitor.
+#
+# NOTE: OSRM (osrm-routed) never returns 503 itself - it only returns 200/400.
+# In this chart traffic is fronted by Contour/Envoy (see httpproxy.yaml), so
+# 503s are emitted by Envoy when there is no healthy upstream, when retries are
+# exhausted, or when the max-connections/max-requests limits are hit. The
+# default monitor below therefore alerts on Envoy upstream 503s for this
+# service. Adjust the query to match how your Envoy/Contour metrics are tagged
+# in Datadog (the Datadog Envoy integration must be scraping Contour's Envoy).
+datadogMonitors:
+  enabled: false
+
+  # Tags applied to every monitor.
+  tags:
+    - "service:osrm"
+    # - "env:prod"
+
+  # Notification handles appended to every monitor message (e.g. Slack/PagerDuty).
+  # Example: "@slack-osrm-alerts @pagerduty-osrm"
+  notify: ""
+
+  # 'query' and 'message' are rendered through Helm's tpl function, so you can
+  # reference values like {{ include "osrm.fullname" . }} and
+  # {{ include "osrm.namespace" . }}.
+  monitors:
+    - # Kubernetes-safe name for the DatadogMonitor object (defaults to a slug of 'name').
+      objectName: "osrm-upstream-503"
+      # Human-readable monitor name shown in Datadog.
+      name: "OSRM upstream 503s"
+      type: "query alert"
+      query: >-
+        sum(last_5m):sum:envoy.cluster.upstream_rq{response_code:503,kube_namespace:{{ include "osrm.namespace" . }}}.as_count() > 5
+      message: |-
+        OSRM ({{ include "osrm.fullname" . }} in {{ include "osrm.namespace" . }}) is
+        returning 503s from Envoy. Likely causes: no healthy upstream (pods not Ready
+        / map still downloading), retry exhaustion, or the max-connections/max-requests
+        limits being hit.
+      priority: 2
+      thresholds:
+        critical: 5
+        warning: 1
+      # Extra fields merged into spec.options (evaluationDelay, notifyNoData, etc.).
+      options:
+        notifyNoData: false
+        evaluationDelay: 60
+
+    - # Catches a full outage at the source (no Ready pods behind the Service),
+      # which is what actually produces Envoy "no healthy upstream" 503s.
+      objectName: "osrm-all-replicas-down"
+      name: "OSRM all replicas down"
+      type: "query alert"
+      query: >-
+        min(last_5m):sum:kubernetes_state.statefulset.replicas_ready{kube_statefulset:{{ include "osrm.fullname" . }},kube_namespace:{{ include "osrm.namespace" . }}} <= 0
+      message: |-
+        No Ready OSRM pods for {{ include "osrm.fullname" . }} in {{ include "osrm.namespace" . }}.
+        The Service has no healthy upstream, so Envoy will return 503s. Check pod
+        status (ImagePullBackOff / CrashLoopBackOff), recent node recycles, and events.
+      priority: 1
+      thresholds:
+        critical: 0
+      options:
+        notifyNoData: true
+        noDataTimeframe: 10
+        evaluationDelay: 60
+
+    - # Root cause of the 2026-09-08 incident: a pinned init-container image
+      # (e.g. gcr.io/google.com/cloudsdktool/cloud-sdk:<tag>) became unpullable
+      # after a node recycle, leaving pods in ImagePullBackOff. Catches it before
+      # it turns into a full 503 outage.
+      objectName: "osrm-image-pull-failure"
+      name: "OSRM image pull failure"
+      type: "query alert"
+      query: >-
+        min(last_10m):sum:kubernetes_state.container.status_report.count.waiting{reason:imagepullbackoff,kube_namespace:{{ include "osrm.namespace" . }}} by {kube_container_name} >= 1
+      message: |-
+        A container in {{ include "osrm.namespace" . }} is stuck in ImagePullBackOff.
+        A pinned image tag (init containers use cloud-sdk / osrm-backend) is likely
+        missing or unpullable - common after a node recycle reschedules pods. Verify
+        the image tags in values.yaml still exist in the registry.
+      priority: 2
+      thresholds:
+        critical: 1
+      options:
+        notifyNoData: false
+        evaluationDelay: 60
+
+    - # Pods repeatedly crashing (e.g. bad map, OOM, missing image on restart).
+      objectName: "osrm-crashloop"
+      name: "OSRM pods crash looping"
+      type: "query alert"
+      query: >-
+        min(last_10m):sum:kubernetes_state.container.status_report.count.waiting{reason:crashloopbackoff,kube_namespace:{{ include "osrm.namespace" . }}} by {kube_container_name} >= 1
+      message: |-
+        A container in {{ include "osrm.namespace" . }} is in CrashLoopBackOff.
+        Check container logs and recent changes (image tag, map version, resources).
+      priority: 2
+      thresholds:
+        critical: 1
+      options:
+        notifyNoData: false
+        evaluationDelay: 60
+
+    - # Init-container image pull failures specifically. The map-downloader/
+      # map-extractor/map-uploader init containers pin external images
+      # (cloud-sdk, osrm-backend); if any becomes unpullable the pod never
+      # starts osrm-routed. Scoped to the init containers so it fires precisely.
+      objectName: "osrm-init-image-pull-failure"
+      name: "OSRM init-container image pull failure"
+      type: "query alert"
+      query: >-
+        min(last_10m):sum:kubernetes_state.container.status_report.count.waiting{reason:imagepullbackoff,kube_namespace:{{ include "osrm.namespace" . }},kube_container_name IN (map-downloader,map-extractor,map-uploader)} by {kube_container_name} >= 1
+      message: |-
+        An OSRM init container (map-downloader/map-extractor/map-uploader) in
+        {{ include "osrm.namespace" . }} is stuck in ImagePullBackOff. A pinned
+        init-container image tag is missing/unpullable - verify the cloud-sdk and
+        osrm-backend image tags in values.yaml still exist in the registry
+        (commonly surfaces after a node recycle reschedules pods).
+      priority: 2
+      thresholds:
+        critical: 1
+      options:
+        notifyNoData: false
+        evaluationDelay: 60
+
+    - # Map volumes are large (default 300Gi) and persistent; a full PVC blocks
+      # map downloads/extraction and can wedge pods. Alert before it fills.
+      objectName: "osrm-pvc-near-full"
+      name: "OSRM map volume near full"
+      type: "query alert"
+      query: >-
+        min(last_15m):( sum:kubernetes.kubelet.volume.stats.used_bytes{kube_namespace:{{ include "osrm.namespace" . }},persistentvolumeclaim:maps-*} by {persistentvolumeclaim} / sum:kubernetes.kubelet.volume.stats.capacity_bytes{kube_namespace:{{ include "osrm.namespace" . }},persistentvolumeclaim:maps-*} by {persistentvolumeclaim} ) * 100 > 90
+      message: |-
+        An OSRM map PVC (maps-*) in {{ include "osrm.namespace" . }} is over 90% full.
+        Map downloads/extraction may fail. Free space (remove old map versions) or
+        grow persistence.size.
+      priority: 3
+      thresholds:
+        critical: 90
+        warning: 80
+      options:
+        notifyNoData: false
+        evaluationDelay: 60

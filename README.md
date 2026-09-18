@@ -67,3 +67,32 @@ map:
     uri: "gs://my-osrm-maps/20200226-1/map.tar.gz"
 ```
 
+### Alerting via Datadog
+
+The chart can optionally render [`DatadogMonitor`](https://docs.datadoghq.com/monitors/manage/monitors_as_code/) resources for you, gated behind `datadogMonitors.enabled` (`false` by default). See `values.yaml` for the full list of default monitors and how to add your own.
+
+**Prerequisites** — these are cluster-level and are not managed by this chart:
+
+- The [Datadog Operator](https://github.com/DataDog/datadog-operator) must be installed in the cluster (this registers the `DatadogMonitor` CRD and reconciles it against the Datadog API), configured with a Datadog API key and application key.
+- The default monitors rely on data already being collected by the Datadog Agent:
+  - Kubernetes State Metrics (`kubernetes_state.*`) for the replicas-down, image-pull-failure, and crash-loop monitors.
+  - Kubelet volume stats for the map PVC near-full monitor.
+  - The [Datadog Envoy integration](https://docs.datadoghq.com/integrations/envoy/) scraping Contour's Envoy for the upstream 503s monitor.
+
+Without these, `DatadogMonitor` objects will still be created, but the monitors will show "no data".
+
+Enable it with:
+
+```bash
+helm upgrade osrm ./osrm \
+  --set datadogMonitors.enabled=true \
+  --set datadogMonitors.notify="@slack-osrm-alerts @pagerduty-osrm"
+```
+
+Verify with:
+
+```bash
+kubectl get datadogmonitors -n osrm
+kubectl describe datadogmonitor osrm-osrm-upstream-503 -n osrm
+```
+

@@ -1,0 +1,39 @@
+{{- if .Values.datadogMonitors.enabled }}
+{{- $root := . }}
+{{- range $monitor := .Values.datadogMonitors.monitors }}
+{{- $objectName := $monitor.objectName | default ($monitor.name | lower | replace " " "-" | trunc 63 | trimSuffix "-") }}
+{{- $message := tpl ($monitor.message | default "") $root }}
+{{- with $root.Values.datadogMonitors.notify }}
+{{- $message = printf "%s\n%s" $message (tpl . $root) }}
+{{- end }}
+---
+apiVersion: datadoghq.com/v1alpha1
+kind: DatadogMonitor
+metadata:
+  name: {{ printf "%s-%s" (include "osrm.fullname" $root) $objectName | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "osrm.namespace" $root }}
+  labels:
+{{ include "osrm.labels" $root | indent 4 }}
+spec:
+  name: {{ $monitor.name | quote }}
+  type: {{ $monitor.type | default "query alert" | quote }}
+  query: {{ tpl $monitor.query $root | quote }}
+  message: {{ $message | quote }}
+  {{- with $monitor.priority }}
+  priority: {{ . }}
+  {{- end }}
+  {{- $tags := concat ($root.Values.datadogMonitors.tags | default (list)) ($monitor.tags | default (list)) }}
+  {{- with $tags }}
+  tags:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  options:
+    {{- with $monitor.thresholds }}
+    thresholds:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $monitor.options }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}
